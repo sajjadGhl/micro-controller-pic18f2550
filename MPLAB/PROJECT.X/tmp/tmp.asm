@@ -1,0 +1,192 @@
+; TODO INSERT CONFIG CODE HERE USING CONFIG BITS GENERATOR
+#include <p18f2550.inc>
+LIST P=18F2550
+CONFIG WDT=OFF ; WATCHDOG TIMER OFF
+CONFIG FOSC = XT_XT ; CONFIGURE CLOCK SOURCE TO EXTERNAL CRYSTAL
+CONFIG LVP = OFF ; LOW VOLTAGE PROGRAMMING DISABLED
+CONFIG BOR = OFF ; Brown Out Reset OFF
+CONFIG VREGEN = OFF ; USB voltage regulator OFF
+CONFIG PBADEN = OFF ; PORTB<4:0> pins are configured as digital I/O on Reset.
+CONFIG MCLRE = ON ; MCLR pin enabled; RE3 input pin disabled.
+
+
+RES_VECT  CODE    0x0000            ; processor reset vector
+    ORG 0X00
+    GOTO    START                   ; go to beginning of program
+
+; TODO ADD INTERRUPTS HERE IF USED
+
+MAIN_PROG CODE                      ; let linker place main program
+
+START
+
+C1 EQU 0X20
+C2 EQU 0X21
+C3 EQU 0X22
+    ; B=OUTPUT
+    CLRF TRISB
+    ; B=OUTPUT
+    
+    ; C6, C7=INPUT
+    BSF TRISC, 6
+    BSF TRISC, 7
+    ; C6, C7=INPUT
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
+    BTFSS PORTC, 6
+    GOTO MAIN_PWD
+    
+    BTFSS PORTC, 7
+    GOTO MAIN_ABSHAR
+    
+    GOTO MAIN_ONE_OF_N
+
+    GOTO START
+    
+MAIN_ABSHAR
+    CALL ABSHAR
+    GOTO START
+    
+MAIN_ONE_OF_N
+    CALL ONE_OF_N
+    GOTO START
+    
+MAIN_PWD
+    CALL PWD
+    GOTO START
+   
+    
+PWD
+    return
+    
+    
+ABSHAR
+    MOVLW 0X00
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00000001'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00000011'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00000111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00001111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00011111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00111111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'01111111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'11111111'
+    CALL SEND
+    CALL DELAY
+  
+    MOVLW B'01111111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00111111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00011111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00001111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00000111'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00000011'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW B'00000001'
+    CALL SEND
+    CALL DELAY
+    
+    MOVLW 0X00
+    CALL SEND
+    CALL DELAY
+    
+    RETURN
+    
+    
+ONE_OF_N
+    CLRF PORTB
+    CALL DELAY
+
+    INCF PORTB
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    CALL ROTATE_LEFT
+    CALL DELAY
+    
+    RETURN
+
+	    
+DELAY
+    MOVLW 0X10
+    MOVWF C1
+LOOP3
+	MOVLW 0X20
+	MOVWF C2
+LOOP2
+	MOVLW 0X25
+	MOVWF C3
+LOOP1
+	DECFSZ C3
+	GOTO LOOP1
+	DECFSZ C2
+	GOTO LOOP2
+	DECFSZ C1
+	GOTO LOOP3
+    RETURN
+
+ROTATE_LEFT
+    RLCF PORTB
+    RETURN   
+    
+SEND
+    MOVWF PORTB
+    RETURN
+
+    END
